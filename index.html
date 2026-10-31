@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YT Commenter Stats</title>
+<link rel="stylesheet" href="style.css">
+<script src="vendor/echarts.min.js"></script>
+</head>
+<body>
+<header id="header">
+  <div class="header-inner">
+    <h1 id="video-title">Loading…</h1>
+    <div id="video-url"></div>
+    <div id="capture-meta"></div>
+    <div id="totals"></div>
+  </div>
+</header>
+
+<nav id="filter-bar" aria-label="Filters">
+  <div class="filter-group">
+    <label>Commenters</label>
+    <div class="multiselect" id="commenter-select">
+      <button type="button" class="ms-toggle" id="ms-toggle" aria-haspopup="listbox">
+        <span id="ms-label">All</span>
+      </button>
+      <div class="ms-panel" id="ms-panel" hidden>
+        <input type="search" id="ms-search" placeholder="Search commenters…" autocomplete="off">
+        <div class="ms-actions">
+          <button type="button" id="ms-all">Select all</button>
+          <button type="button" id="ms-none">Clear</button>
+        </div>
+        <div class="ms-list" id="ms-list" role="listbox" aria-multiselectable="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <label for="f-video">Video</label>
+    <select id="f-video">
+      <option value="all" selected>All videos</option>
+      <option value="input">Input video only</option>
+      <option value="cross">Cross-video only</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label for="f-from">From</label>
+    <input type="date" id="f-from">
+  </div>
+  <div class="filter-group">
+    <label for="f-to">To</label>
+    <input type="date" id="f-to">
+  </div>
+  <div class="filter-group">
+    <label for="f-gran">Time chart</label>
+    <select id="f-gran">
+      <option value="day" selected>Day</option>
+      <option value="week">Week</option>
+      <option value="month">Month</option>
+      <option value="year">Year</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label for="f-likes">Min likes</label>
+    <input type="number" id="f-likes" min="0" step="1" placeholder="0">
+  </div>
+  <div class="filter-group">
+    <label>Account age</label>
+    <div class="preset-row">
+      <input type="number" id="f-age-min" min="0" step="0.5" placeholder="Min (y)">
+      <input type="number" id="f-age-max" min="0" step="0.5" placeholder="Max (y)">
+    </div>
+    <div class="preset-row">
+      <button type="button" class="preset age-preset" data-age-preset="fresh">Fresh &lt;1y</button>
+      <button type="button" class="preset age-preset" data-age-preset="mid">Mid 3–7y</button>
+      <button type="button" class="preset age-preset" data-age-preset="old">Old &gt;10y</button>
+    </div>
+  </div>
+  <div class="filter-group checkbox">
+    <input type="checkbox" id="f-replies">
+    <label for="f-replies">Replies only</label>
+  </div>
+  <div class="filter-group">
+    <button type="button" id="f-reset">Reset</button>
+  </div>
+  <div class="filter-group presets">
+    <label>Presets</label>
+    <div class="preset-row">
+      <button type="button" class="preset" data-preset="all">All</button>
+      <button type="button" class="preset" data-preset="7d">7 days</button>
+      <button type="button" class="preset" data-preset="30d">30 days</button>
+      <button type="button" class="preset" data-preset="year">This year</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <section id="kpis" aria-label="Key statistics"></section>
+
+  <section id="charts" aria-label="Charts">
+    <div class="chart-card wide"><h2>Comments over time</h2><div class="chart" id="chart-time"></div></div>
+    <div class="chart-card"><h2>Comments per 3-hour bin (00–24)</h2><div class="chart" id="chart-3h"></div></div>
+    <div class="chart-card"><h2>Comments per weekday</h2><div class="chart" id="chart-weekday"></div></div>
+    <div class="chart-card"><h2>Account age distribution</h2><div class="chart" id="chart-age"></div></div>
+    <div class="chart-card"><h2>Top commenters (by comments in selection)</h2><div class="chart" id="chart-top"></div></div>
+  </section>
+
+  <section id="tables" aria-label="Tables">
+    <div class="table-card">
+      <h2>Commenters meta data <span class="hint" id="commenters-count"></span></h2>
+      <div class="table-wrap">
+        <table id="commenters-table">
+          <thead>
+            <tr>
+              <th data-sort="name">Name</th>
+              <th data-sort="country">Country</th>
+              <th data-sort="created_at">Created</th>
+              <th data-sort="age_days" class="num">Age (days)</th>
+              <th data-sort="comments" class="num">Comments</th>
+              <th data-sort="cross_video_count" class="num">Cross-video</th>
+              <th data-sort="subs" class="num">Subscribers</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <h2>Comments details <span class="hint" id="comments-count"></span></h2>
+      <div class="table-wrap">
+        <table id="comments-table">
+          <thead>
+            <tr>
+              <th data-sort="ts">Timestamp</th>
+              <th data-sort="author">Author</th>
+              <th data-sort="video">Video</th>
+              <th data-sort="len" class="num">Length</th>
+              <th data-sort="likes" class="num">Likes</th>
+              <th>Text</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="comments-pagination"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span id="footer-meta"></span>
+  <span class="hint"> · data: <code>data.js</code> · no backend, all stats computed in your browser · dates &amp; 3-hour bins use your browser's local time zone</span>
+</footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
